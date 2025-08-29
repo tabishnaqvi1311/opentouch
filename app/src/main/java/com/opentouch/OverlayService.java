@@ -1,5 +1,8 @@
 package com.opentouch;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -14,8 +17,12 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import androidx.core.app.NotificationCompat;
 
 public class OverlayService extends Service {
+    private static final int NOTIFICATION_ID = 1;
+    private static final String CHANNEL_ID = "OpenTouchChannel";
+
     private WindowManager windowManager;
     private View overlayView;
     private View expandedView;
@@ -26,10 +33,38 @@ public class OverlayService extends Service {
     public void onCreate() {
         super.onCreate();
 
+        createNotificationChannel();
+        startForeground(NOTIFICATION_ID, createNotification());
+
         windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 
         createOverlayView();
+    }
+
+    private void createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(
+                    CHANNEL_ID,
+                    "OpenTouch Service",
+                    NotificationManager.IMPORTANCE_LOW
+            );
+            channel.setDescription("Keeps OpenTouch overlay running");
+            channel.setShowBadge(false);
+
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
+        }
+    }
+
+    private Notification createNotification() {
+        return new NotificationCompat.Builder(this, CHANNEL_ID)
+                .setContentTitle("OpenTouch")
+                .setContentText("Volume controls active")
+                .setSmallIcon(android.R.drawable.ic_media_play)
+                .setOngoing(true)
+                .setSilent(true)
+                .build();
     }
 
     private void createOverlayView() {
