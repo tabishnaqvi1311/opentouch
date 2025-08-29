@@ -1,39 +1,57 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="20dp"
-    android:gravity="center">
+    android:padding="40dp"
+    android:background="#F5F5F5">
 
+    <!-- App Title -->
     <TextView
+        android:id="@+id/titleText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="OpenTouch"
-        android:textSize="24sp"
+        android:textSize="32sp"
         android:textStyle="bold"
-        android:layout_marginBottom="20dp" />
+        android:textColor="#333333"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="80dp" />
 
+    <!-- Subtitle -->
     <TextView
+        android:id="@+id/subtitleText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Simple volume control overlay"
         android:textSize="16sp"
-        android:layout_marginBottom="40dp" />
+        android:textColor="#666666"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@id/titleText"
+        android:layout_marginTop="8dp" />
 
+    <!-- Big Toggle Button -->
     <Button
-        android:id="@+id/startButton"
-        android:layout_width="200dp"
-        android:layout_height="wrap_content"
-        android:text="Start Overlay"
-        android:textSize="18sp"
-        android:layout_marginBottom="20dp" />
+        android:id="@+id/toggleButton"
+        android:layout_width="280dp"
+        android:layout_height="280dp"
+        android:layout_centerInParent="true"
+        android:text="OpenTouch OFF\n\nTap to Start"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:textColor="#FFFFFF"
+        android:background="#757575"
+        android:elevation="8dp"
+        android:stateListAnimator="@null" />
 
-    <Button
-        android:id="@+id/stopButton"
-        android:layout_width="200dp"
+    <!-- Info Text -->
+    <TextView
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Stop Overlay"
-        android:textSize="18sp" />
+        android:text="Grant overlay permission when prompted"
+        android:textSize="14sp"
+        android:textColor="#888888"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="60dp" />
 
-</LinearLayout>
+</RelativeLayout>

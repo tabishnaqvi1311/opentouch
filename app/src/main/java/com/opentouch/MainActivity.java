@@ -11,24 +11,38 @@ import android.widget.Toast;
 
 public class MainActivity extends Activity {
     private static final int OVERLAY_PERMISSION_REQUEST = 100;
+    private Button toggleButton;
+    private boolean isServiceRunning = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Button startButton = findViewById(R.id.startButton);
-        Button stopButton = findViewById(R.id.stopButton);
+        toggleButton = findViewById(R.id.toggleButton);
+        updateToggleButton();
 
-        startButton.setOnClickListener(v -> {
-            if (checkOverlayPermission()) {
-                startOverlayService();
+        toggleButton.setOnClickListener(v -> {
+            if (isServiceRunning) {
+                stopOverlayService();
             } else {
-                requestOverlayPermission();
+                if (checkOverlayPermission()) {
+                    startOverlayService();
+                } else {
+                    requestOverlayPermission();
+                }
             }
         });
+    }
 
-        stopButton.setOnClickListener(v -> stopOverlayService());
+    private void updateToggleButton() {
+        if (isServiceRunning) {
+            toggleButton.setText("OpenTouch ON\n\nTap to Stop");
+            toggleButton.setBackgroundColor(0xFF4CAF50); // Green
+        } else {
+            toggleButton.setText("OpenTouch OFF\n\nTap to Start");
+            toggleButton.setBackgroundColor(0xFF757575); // Gray
+        }
     }
 
     private boolean checkOverlayPermission() {
@@ -61,12 +75,22 @@ public class MainActivity extends Activity {
     private void startOverlayService() {
         Intent intent = new Intent(this, OverlayService.class);
         startService(intent);
+        isServiceRunning = true;
+        updateToggleButton();
         Toast.makeText(this, "OpenTouch started", Toast.LENGTH_SHORT).show();
     }
 
     private void stopOverlayService() {
         Intent intent = new Intent(this, OverlayService.class);
         stopService(intent);
+        isServiceRunning = false;
+        updateToggleButton();
         Toast.makeText(this, "OpenTouch stopped", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // You could add service state checking here if needed
     }
 }
