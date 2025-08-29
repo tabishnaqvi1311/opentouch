@@ -98,12 +98,15 @@ public class OverlayService extends Service {
     }
 
     private void setupDragListener(WindowManager.LayoutParams params) {
-        overlayView.setOnTouchListener(new View.OnTouchListener() {
+        View mainButton = overlayView.findViewById(R.id.mainButton);
+
+        mainButton.setOnTouchListener(new View.OnTouchListener() {
             private int initialX;
             private int initialY;
             private float initialTouchX;
             private float initialTouchY;
             private boolean isDragging = false;
+            private long touchStartTime = 0;
 
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -114,23 +117,34 @@ public class OverlayService extends Service {
                         initialTouchX = event.getRawX();
                         initialTouchY = event.getRawY();
                         isDragging = false;
+                        touchStartTime = System.currentTimeMillis();
                         return true;
+
                     case MotionEvent.ACTION_UP:
-                        if (!isDragging) {
-                            // If not dragging, treat as click on main button
-                            if (!isExpanded) {
-                                toggleExpanded();
-                            }
+                        long touchDuration = System.currentTimeMillis() - touchStartTime;
+
+                        // If it was a quick tap and not dragging, toggle expanded view
+                        if (!isDragging && touchDuration < 200) {
+                            toggleExpanded();
                         }
                         return true;
+
                     case MotionEvent.ACTION_MOVE:
                         float deltaX = Math.abs(event.getRawX() - initialTouchX);
                         float deltaY = Math.abs(event.getRawY() - initialTouchY);
 
-                        if (deltaX > 10 || deltaY > 10) {
+                        // Much more sensitive drag detection
+                        if (deltaX > 5 || deltaY > 5) {
                             isDragging = true;
-                            params.x = initialX + (int) (event.getRawX() - initialTouchX);
+
+                            // Update position in both X and Y directions
+                            params.x = initialX - (int) (event.getRawX() - initialTouchX);
                             params.y = initialY + (int) (event.getRawY() - initialTouchY);
+
+                            // Keep it on screen
+                            if (params.x < 0) params.x = 0;
+                            if (params.y < 0) params.y = 0;
+
                             windowManager.updateViewLayout(overlayView, params);
                         }
                         return true;
