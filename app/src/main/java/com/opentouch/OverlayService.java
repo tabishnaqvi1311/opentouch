@@ -18,7 +18,9 @@ import android.widget.LinearLayout;
 public class OverlayService extends Service {
     private WindowManager windowManager;
     private View overlayView;
+    private View expandedView;
     private AudioManager audioManager;
+    private boolean isExpanded = false;
 
     @Override
     public void onCreate() {
@@ -48,20 +50,29 @@ public class OverlayService extends Service {
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
                 PixelFormat.TRANSLUCENT);
 
-        params.gravity = Gravity.TOP | Gravity.START;
-        params.x = 100;
-        params.y = 100;
+        params.gravity = Gravity.TOP | Gravity.END;
+        params.x = 50;
+        params.y = 200;
 
         windowManager.addView(overlayView, params);
 
-        setupButtons();
+        setupViews();
         setupDragListener(params);
     }
 
-    private void setupButtons() {
+    private void setupViews() {
+        ImageButton mainButton = overlayView.findViewById(R.id.mainButton);
+        expandedView = overlayView.findViewById(R.id.expandedView);
         ImageButton volumeUpButton = overlayView.findViewById(R.id.volumeUpButton);
         ImageButton volumeDownButton = overlayView.findViewById(R.id.volumeDownButton);
         ImageButton closeButton = overlayView.findViewById(R.id.closeButton);
+
+        // Initially hide expanded view
+        expandedView.setVisibility(View.GONE);
+
+        mainButton.setOnClickListener(v -> {
+            toggleExpanded();
+        });
 
         volumeUpButton.setOnClickListener(v -> {
             audioManager.adjustVolume(AudioManager.ADJUST_RAISE, AudioManager.FLAG_SHOW_UI);
@@ -76,12 +87,23 @@ public class OverlayService extends Service {
         });
     }
 
+    private void toggleExpanded() {
+        if (isExpanded) {
+            expandedView.setVisibility(View.GONE);
+            isExpanded = false;
+        } else {
+            expandedView.setVisibility(View.VISIBLE);
+            isExpanded = true;
+        }
+    }
+
     private void setupDragListener(WindowManager.LayoutParams params) {
         overlayView.setOnTouchListener(new View.OnTouchListener() {
             private int initialX;
             private int initialY;
             private float initialTouchX;
             private float initialTouchY;
+            private boolean isDragging = false;
 
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -91,13 +113,26 @@ public class OverlayService extends Service {
                         initialY = params.y;
                         initialTouchX = event.getRawX();
                         initialTouchY = event.getRawY();
+                        isDragging = false;
                         return true;
                     case MotionEvent.ACTION_UP:
+                        if (!isDragging) {
+                            // If not dragging, treat as click on main button
+                            if (!isExpanded) {
+                                toggleExpanded();
+                            }
+                        }
                         return true;
                     case MotionEvent.ACTION_MOVE:
-                        params.x = initialX + (int) (event.getRawX() - initialTouchX);
-                        params.y = initialY + (int) (event.getRawY() - initialTouchY);
-                        windowManager.updateViewLayout(overlayView, params);
+                        float deltaX = Math.abs(event.getRawX() - initialTouchX);
+                        float deltaY = Math.abs(event.getRawY() - initialTouchY);
+
+                        if (deltaX > 10 || deltaY > 10) {
+                            isDragging = true;
+                            params.x = initialX + (int) (event.getRawX() - initialTouchX);
+                            params.y = initialY + (int) (event.getRawY() - initialTouchY);
+                            windowManager.updateViewLayout(overlayView, params);
+                        }
                         return true;
                 }
                 return false;
